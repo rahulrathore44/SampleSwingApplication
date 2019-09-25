@@ -1,0 +1,47 @@
+/**
+ * 
+ */
+package com.testcase;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+
+import javax.swing.JTextField;
+
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+/**
+ * @author - rahul.rathore
+ * @date - 11-Dec-2014
+ * @project - Swingapplication
+ * @package - com.testcase
+ * @file name - TestSwingFrame.java
+ */
+public class TestSwingFrame {
+	
+	private static Class cls = null;
+	private static Object object = null;
+
+	
+	@BeforeClass
+	public static void setUp(){
+		try {
+			cls = Class.forName("com.frame.SwingFrame");
+			object = cls.newInstance();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	@Test
+	public void testCaseID() throws Exception{
+		Method getId = cls.getDeclaredMethod("setId", null);
+		Field id = cls.getDeclaredField("idField");
+		getId.setAccessible(true);
+		id.setAccessible(true);
+		getId.invoke(object, null);
+		System.out.println(((JTextField)id.get(object)).getText());
+	}
+
+}

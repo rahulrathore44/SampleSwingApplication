@@ -1,0 +1,83 @@
+package com.testcase;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import com.microsoft.sqlserver.jdbc.SQLServerException;
+
+public class TestClassDBFunction extends Assert{
+	
+	private static Class clas = null;
+	private static Object object = null;
+	private static Method method = null;
+	private static Connection con = null;
+	private static Statement stmt = null;
+	
+	@BeforeClass
+	public static void setUp() {
+		try {
+			clas = Class.forName("com.function.BaseFunction");
+			object = clas.newInstance();
+			Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+			con = DriverManager.getConnection("jdbc:sqlserver://localhost:1433;databaseName=AppDatabase", "sa", "admin1234#");
+			stmt = con.createStatement();
+			String sql = "select name from sysobjects WHERE xtype='U' and name='mytable'";
+			String drop = "drop table mytable";
+			if(stmt.executeQuery(sql).next())
+				stmt.executeUpdate(drop);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	@Test
+	public void testCaseCheckTable() throws Exception {
+		Method conMethod = clas.getDeclaredMethod("createConnection", String.class,String.class);
+		conMethod.invoke(object, "sa","admin1234#");
+		method = clas.getDeclaredMethod("isTablePresent", null);
+		assertFalse("Expected was [false] but found [true]", (boolean)method.invoke(object, null));
+	}
+	
+	@Test
+	public void testCaseCreateCheckTable() throws Exception{
+		Method conMethod = clas.getDeclaredMethod("createConnection", String.class,String.class);
+		conMethod.invoke(object, "sa","admin1234#");
+		Method createTable = clas.getDeclaredMethod("createTable", null);
+		createTable.invoke(object, null);
+		method = clas.getDeclaredMethod("isTablePresent", null);
+		assertTrue("Expected was [true] but found [false]", (boolean)method.invoke(object, null));
+	}
+	
+	@Test
+	public void testCaseRecreateTable() throws Exception {
+		Method conMethod = clas.getDeclaredMethod("createConnection", String.class,String.class);
+		conMethod.invoke(object, "sa","admin1234#");
+		Method createTable = clas.getDeclaredMethod("createTable", null);
+		createTable.invoke(object, null);
+	}
+	
+	@AfterClass
+	public static void cleanUp() {
+		try {
+			Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+			con = DriverManager.getConnection("jdbc:sqlserver://localhost:1433;databaseName=AppDatabase", "sa", "admin1234#");
+			stmt = con.createStatement();
+			String sql = "select name from sysobjects WHERE xtype='U' and name='mytable'";
+			String drop = "drop table mytable";
+			if(stmt.executeQuery(sql).next())
+				stmt.executeUpdate(drop);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+}
